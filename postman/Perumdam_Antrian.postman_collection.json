@@ -1,0 +1,104 @@
+{
+  "info": {
+    "name": "Perumdam Tirta Perwira - Sistem Antrian",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {"key": "base_url", "value": "http://127.0.0.1:8000"},
+    {"key": "token", "value": ""},
+    {"key": "service_code", "value": "CS"},
+    {"key": "loket_code", "value": "L1"},
+    {"key": "ticket_no", "value": ""}
+  ],
+  "item": [
+    {
+      "name": "Public - Status",
+      "request": {
+        "method": "GET",
+        "header": [{"key": "Accept", "value": "application/json"}],
+        "url": {"raw": "{{base_url}}/api/public/status", "host": ["{{base_url}}"], "path": ["api","public","status"]}
+      }
+    },
+    {
+      "name": "Public - Ambil Tiket",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "type": "text/javascript",
+            "exec": [
+              "const json = pm.response.json();",
+              "if (json?.success && json?.data?.ticket_no) {",
+              "  pm.collectionVariables.set('ticket_no', json.data.ticket_no);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Content-Type", "value": "application/json"}
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"service_code\": \"{{service_code}}\"\n}"
+        },
+        "url": {"raw": "{{base_url}}/api/public/tickets", "host": ["{{base_url}}"], "path": ["api","public","tickets"]}
+      }
+    },
+    {
+      "name": "Operator - Call Next",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{token}}"}
+        ],
+        "body": {"mode": "raw", "raw": "{\n  \"loket_code\": \"{{loket_code}}\"\n}"},
+        "url": {"raw": "{{base_url}}/api/operator/call-next", "host": ["{{base_url}}"], "path": ["api","operator","call-next"]}
+      }
+    },
+    {
+      "name": "Operator - Recall",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{token}}"}
+        ],
+        "body": {"mode": "raw", "raw": "{\n  \"ticket_no\": \"{{ticket_no}}\"\n}"},
+        "url": {"raw": "{{base_url}}/api/operator/recall", "host": ["{{base_url}}"], "path": ["api","operator","recall"]}
+      }
+    },
+    {
+      "name": "Operator - Skip (No-show)",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{token}}"}
+        ],
+        "body": {"mode": "raw", "raw": "{\n  \"ticket_no\": \"{{ticket_no}}\"\n}"},
+        "url": {"raw": "{{base_url}}/api/operator/skip", "host": ["{{base_url}}"], "path": ["api","operator","skip"]}
+      }
+    },
+    {
+      "name": "Operator - Serve",
+      "request": {
+        "method": "POST",
+        "header": [
+          {"key": "Accept", "value": "application/json"},
+          {"key": "Content-Type", "value": "application/json"},
+          {"key": "Authorization", "value": "Bearer {{token}}"}
+        ],
+        "body": {"mode": "raw", "raw": "{\n  \"ticket_no\": \"{{ticket_no}}\"\n}"},
+        "url": {"raw": "{{base_url}}/api/operator/serve", "host": ["{{base_url}}"], "path": ["api","operator","serve"]}
+      }
+    }
+  ]
+}

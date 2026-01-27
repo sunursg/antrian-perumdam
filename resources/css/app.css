@@ -1,0 +1,48 @@
+@import "tailwindcss";
+
+/* Tailwind v4 source scan */
+@source "../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php";
+@source "../../storage/framework/views/*.php";
+@source "../**/*.blade.php";
+@source "../**/*.js";
+
+/* Theme token (opsional) */
+@theme {
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
+    "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+}
+
+/* --- Premium base --- */
+html, body { height: 100%; }
+
+/* Komponen reusable */
+@layer components {
+  .btn-primary {
+    @apply px-5 py-3 rounded-2xl bg-sky-600 text-white font-semibold shadow-sm
+      hover:bg-sky-700 active:scale-[0.99] transition;
+  }
+
+  .btn-ghost-dark {
+    @apply px-5 py-3 rounded-2xl bg-white/10 text-white font-semibold
+      border border-white/15 hover:bg-white/15 active:scale-[0.99] transition;
+  }
+
+  .card-dark {
+    @apply rounded-3xl bg-white/6 border border-white/10 shadow-2xl/30 backdrop-blur-md;
+  }
+
+  .card-light {
+    @apply rounded-3xl bg-white border border-slate-100 shadow-lg shadow-slate-900/5;
+  }
+
+  .muted {
+    @apply text-slate-500;
+  }
+}
+
+/* Highlight dipakai saat nomor dipanggil */
+.glow-call {
+  box-shadow:
+    0 0 0 2px rgba(6, 182, 212, 0.35),
+    0 20px 60px rgba(2, 132, 199, 0.25);
+}

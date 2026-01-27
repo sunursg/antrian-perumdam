@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>@yield('title', 'Perumdam Tirta Perwira | Sistem Antrian')</title>
+  @vite(['resources/css/app.css','resources/js/app.js'])
+</head>
+<body class="@yield('bodyClass', 'bg-slate-50 text-slate-900') antialiased">
+  @yield('content')
+</body>
+</html>
