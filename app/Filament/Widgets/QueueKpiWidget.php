@@ -11,7 +11,7 @@ class QueueKpiWidget extends BaseWidget
 {
     protected function getStats(): array
     {
-        $dateKey = now()->format('Ymd');
+        $dateKey = now()->format('Y-m-d');
 
         $total = QueueTicket::query()->where('date_key', $dateKey)->count();
         $served = QueueTicket::query()->where('date_key', $dateKey)->where('status', TicketStatus::SELESAI->value)->count();

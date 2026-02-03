@@ -4,8 +4,10 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Public\TakeTicketRequest;
+use App\Models\QueueTicket;
 use App\Models\Service;
 use App\Services\QueueService;
+use App\Support\Settings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 
@@ -13,17 +15,38 @@ class AmbilTiketController extends Controller
 {
     public function page()
     {
-        return view('pages.ambil-tiket');
+        $organization = Settings::organization();
+        $services = Service::query()
+            ->where('is_active', true)
+            ->orderBy('code')
+            ->get();
+
+        $announcements = Settings::activeAnnouncements();
+
+        return view('pages.ambil-tiket', [
+            'organization' => $organization,
+            'services' => $services,
+            'announcements' => $announcements,
+        ]);
+    }
+
+    public function show(QueueTicket $ticket)
+    {
+        $ticket->loadMissing('service', 'loket');
+
+        return view('pages.tiket', [
+            'ticket' => $ticket,
+        ]);
     }
 
     public function take(TakeTicketRequest $request, QueueService $queue): JsonResponse
     {
         try {
-            $service = Service::query()->where('code', $request->string('service_code'))->firstOrFail();
-            $ticket = $queue->takeTicket($service);
+            $service = Service::query()->where('code', $request->string('service_code')->toString())->firstOrFail();
+            $ticket = $queue->takeTicket($service, $request->user(), $request->ip());
 
             $waitingCount = $service->tickets()
-                ->where('date_key', now()->format('Ymd'))
+                ->where('date_key', now()->format('Y-m-d'))
                 ->where('status', \App\Enums\TicketStatus::MENUNGGU->value)
                 ->count();
 

@@ -8,26 +8,35 @@ use App\Models\QueueEvent;
 use App\Models\QueueTicket;
 use App\Models\Service;
 use App\Models\TicketCounter;
+use App\Models\User;
+use App\Support\ActivityLogger;
 use Carbon\Carbon;
+use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 
 class QueueService
 {
-    public function takeTicket(Service $service): QueueTicket
+    private const EVENT_CREATED = 'CREATED';
+    private const EVENT_CALLED = 'CALLED';
+    private const EVENT_RECALLED = 'RECALLED';
+    private const EVENT_SKIPPED = 'SKIPPED';
+    private const EVENT_SERVED = 'SERVED';
+
+    public function takeTicket(Service $service, ?User $actor = null, ?string $ip = null): QueueTicket
     {
         $now = now();
-        $dateKey = $now->format('Ymd');
+        $dateKey = $now->format('Y-m-d');
 
         if (!$service->is_active) {
             throw ValidationException::withMessages(['service' => 'Layanan sedang tidak aktif.']);
         }
 
-        $open = Carbon::parse($service->open_at);
-        $close = Carbon::parse($service->close_at);
+        $open = Carbon::createFromTimeString($service->open_at);
+        $close = Carbon::createFromTimeString($service->close_at);
         if ($now->lt($open) || $now->gt($close)) {
             throw ValidationException::withMessages([
-                'service' => "Layanan tutup. Jam layanan: {$service->open_at}–{$service->close_at}.",
+                'service' => "Layanan tutup. Jam layanan: {$service->open_at}-{$service->close_at}.",
             ]);
         }
 
@@ -42,7 +51,7 @@ class QueueService
             ]);
         }
 
-        return DB::transaction(function () use ($service, $dateKey) {
+        return DB::transaction(function () use ($service, $dateKey, $actor, $ip) {
             $counter = TicketCounter::query()
                 ->where('date_key', $dateKey)
                 ->where('service_id', $service->id)
@@ -50,12 +59,23 @@ class QueueService
                 ->first();
 
             if (!$counter) {
-                $counter = TicketCounter::create([
-                    'date_key' => $dateKey,
-                    'service_id' => $service->id,
-                    'last_seq' => 0,
-                ]);
-                $counter->refresh();
+                try {
+                    $counter = TicketCounter::create([
+                        'date_key' => $dateKey,
+                        'service_id' => $service->id,
+                        'last_seq' => 0,
+                    ]);
+                } catch (QueryException $e) {
+                    if ($e->getCode() !== '23000') {
+                        throw $e;
+                    }
+
+                    $counter = TicketCounter::query()
+                        ->where('date_key', $dateKey)
+                        ->where('service_id', $service->id)
+                        ->lockForUpdate()
+                        ->firstOrFail();
+                }
             }
 
             $nextSeq = $counter->last_seq + 1;
@@ -76,17 +96,29 @@ class QueueService
 
             $counter->update(['last_seq' => $nextSeq]);
 
-            $this->logEvent('queue_update', $ticket, null);
+            $this->logEvent(self::EVENT_CREATED, $ticket, null, $actor, $ip);
 
             return $ticket;
         });
     }
 
-    public function callNext(Loket $loket, int $operatorUserId): ?QueueTicket
+    public function callNext(Loket $loket, ?User $actor = null, ?string $ip = null): ?QueueTicket
     {
-        $dateKey = now()->format('Ymd');
+        $dateKey = now()->format('Y-m-d');
 
-        return DB::transaction(function () use ($loket, $dateKey) {
+        if (!$loket->is_active) {
+            throw ValidationException::withMessages([
+                'loket' => 'Loket sedang tidak aktif.',
+            ]);
+        }
+
+        if (!$loket->service?->is_active) {
+            throw ValidationException::withMessages([
+                'service' => 'Layanan untuk loket ini sedang tidak aktif.',
+            ]);
+        }
+
+        return DB::transaction(function () use ($loket, $dateKey, $actor, $ip) {
             $ticket = QueueTicket::query()
                 ->where('date_key', $dateKey)
                 ->where('service_id', $loket->service_id)
@@ -105,13 +137,13 @@ class QueueService
                 'called_at' => now(),
             ]);
 
-            $this->logEvent('queue_update', $ticket, $loket);
+            $this->logEvent(self::EVENT_CALLED, $ticket, $loket, $actor, $ip);
 
             return $ticket->refresh();
         });
     }
 
-    public function recall(QueueTicket $ticket): QueueTicket
+    public function recall(QueueTicket $ticket, ?User $actor = null, ?string $ip = null): QueueTicket
     {
         if ($ticket->status !== TicketStatus::DIPANGGIL->value) {
             throw ValidationException::withMessages([
@@ -120,12 +152,12 @@ class QueueService
         }
 
         $ticket->update(['called_at' => now()]);
-        $this->logEvent('queue_update', $ticket, $ticket->loket);
+        $this->logEvent(self::EVENT_RECALLED, $ticket, $ticket->loket, $actor, $ip);
 
         return $ticket->refresh();
     }
 
-    public function markNoShow(QueueTicket $ticket): QueueTicket
+    public function markNoShow(QueueTicket $ticket, ?User $actor = null, ?string $ip = null): QueueTicket
     {
         if (!in_array($ticket->status, [TicketStatus::DIPANGGIL->value, TicketStatus::MENUNGGU->value], true)) {
             throw ValidationException::withMessages([
@@ -138,12 +170,12 @@ class QueueService
             'noshow_at' => now(),
         ]);
 
-        $this->logEvent('queue_update', $ticket, $ticket->loket);
+        $this->logEvent(self::EVENT_SKIPPED, $ticket, $ticket->loket, $actor, $ip);
 
         return $ticket->refresh();
     }
 
-    public function serve(QueueTicket $ticket): QueueTicket
+    public function serve(QueueTicket $ticket, ?User $actor = null, ?string $ip = null): QueueTicket
     {
         if ($ticket->status !== TicketStatus::DIPANGGIL->value) {
             throw ValidationException::withMessages([
@@ -156,16 +188,21 @@ class QueueService
             'served_at' => now(),
         ]);
 
-        $this->logEvent('queue_update', $ticket, $ticket->loket);
+        $this->logEvent(self::EVENT_SERVED, $ticket, $ticket->loket, $actor, $ip);
 
         return $ticket->refresh();
     }
 
-    public function logEvent(string $type, QueueTicket $ticket, ?Loket $loket): QueueEvent
-    {
+    public function logEvent(
+        string $type,
+        QueueTicket $ticket,
+        ?Loket $loket,
+        ?User $actor = null,
+        ?string $ip = null,
+    ): QueueEvent {
         $ticket->loadMissing('service', 'loket');
 
-        return QueueEvent::create([
+        $event = QueueEvent::create([
             'type' => $type,
             'ticket_no' => $ticket->ticket_no,
             'service_code' => $ticket->service->code,
@@ -175,8 +212,25 @@ class QueueService
                 'ticket_id' => $ticket->id,
                 'service_name' => $ticket->service->name,
                 'loket_name' => $loket?->name ?? $ticket->loket?->name,
+                'actor_id' => $actor?->id,
+                'actor_name' => $actor?->name,
+                'ip' => $ip,
             ],
             'occurred_at' => now(),
         ]);
+
+        ActivityLogger::log(
+            "queue.{$type}",
+            "Event {$type} untuk tiket {$ticket->ticket_no}",
+            $ticket,
+            $actor,
+            [
+                'loket' => $loket?->code ?? $ticket->loket?->code,
+                'status' => $ticket->status,
+            ],
+            $ip
+        );
+
+        return $event;
     }
 }

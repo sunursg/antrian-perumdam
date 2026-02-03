@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\QueueTicketResource\Pages;
 use App\Models\QueueTicket;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -12,9 +13,9 @@ class QueueTicketResource extends Resource
 {
     protected static ?string $model = QueueTicket::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-ticket';
-    protected static ?string $navigationGroup = 'Laporan';
-    protected static ?string $modelLabel = 'Tiket Antrian';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-ticket';
+    protected static \UnitEnum|string|null $navigationGroup = 'Operasional'; 
+    protected static ?string $modelLabel = 'Tiket Antrian'; 
 
     public static function table(Table $table): Table
     {
@@ -28,8 +29,8 @@ class QueueTicketResource extends Resource
                 Tables\Columns\TextColumn::make('called_at')->label('Dipanggil')->dateTime('d/m H:i')->toggleable(),
                 Tables\Columns\TextColumn::make('served_at')->label('Selesai')->dateTime('d/m H:i')->toggleable(),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
+            ->recordActions([
+                ViewAction::make(),
             ])
             ->defaultSort('id', 'desc');
     }

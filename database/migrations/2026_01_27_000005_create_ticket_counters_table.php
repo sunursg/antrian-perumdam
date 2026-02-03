@@ -9,7 +9,7 @@ return new class extends Migration {
     {
         Schema::create('ticket_counters', function (Blueprint $table) {
             $table->id();
-            $table->string('date_key', 8);
+            $table->string('date_key', 10);
             $table->foreignId('service_id')->constrained()->cascadeOnDelete();
             $table->unsignedInteger('last_seq')->default(0);
             $table->timestamps();

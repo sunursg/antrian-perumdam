@@ -10,6 +10,8 @@ class Service extends Model
     protected $fillable = [
         'code',
         'name',
+        'description',
+        'requires_confirmation',
         'daily_quota',
         'open_at',
         'close_at',
@@ -19,6 +21,7 @@ class Service extends Model
 
     protected $casts = [
         'is_active' => 'bool',
+        'requires_confirmation' => 'bool',
     ];
 
     public function lokets(): HasMany

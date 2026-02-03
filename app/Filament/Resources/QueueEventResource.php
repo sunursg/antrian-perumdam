@@ -4,6 +4,7 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\QueueEventResource\Pages;
 use App\Models\QueueEvent;
+use Filament\Actions\ViewAction;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
@@ -12,9 +13,9 @@ class QueueEventResource extends Resource
 {
     protected static ?string $model = QueueEvent::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-clock';
-    protected static ?string $navigationGroup = 'Laporan';
-    protected static ?string $modelLabel = 'Audit Event';
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-clock';
+    protected static \UnitEnum|string|null $navigationGroup = 'Operasional'; 
+    protected static ?string $modelLabel = 'Riwayat Panggilan'; 
 
     public static function canCreate(): bool
     {
@@ -32,9 +33,10 @@ class QueueEventResource extends Resource
                 Tables\Columns\TextColumn::make('service_code')->label('Layanan'),
                 Tables\Columns\TextColumn::make('status')->label('Status'),
                 Tables\Columns\TextColumn::make('type')->label('Tipe'),
+                Tables\Columns\TextColumn::make('payload->actor_name')->label('Pelaksana')->toggleable(),
             ])
-            ->actions([
-                Tables\Actions\ViewAction::make(),
+            ->recordActions([
+                ViewAction::make(),
             ])
             ->defaultSort('id', 'desc');
     }

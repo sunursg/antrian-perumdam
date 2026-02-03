@@ -4,9 +4,11 @@ namespace App\Filament\Resources;
 
 use App\Filament\Resources\UserResource\Pages;
 use App\Models\User;
+use Filament\Actions\DeleteBulkAction;
+use Filament\Actions\EditAction;
 use Filament\Forms;
-use Filament\Forms\Form;
 use Filament\Resources\Resource;
+use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Hash;
@@ -15,21 +17,39 @@ class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-users';
-    protected static ?string $navigationGroup = 'Akses';
+    // ✅ Filament v4 typed props
+    protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-users';
+    protected static \UnitEnum|string|null $navigationGroup = 'Akses';
     protected static ?string $modelLabel = 'Pengguna';
 
-    public static function form(Form $form): Form
+    public static function form(Schema $schema): Schema
     {
-        return $form->schema([
-            Forms\Components\TextInput::make('name')->label('Nama')->required()->maxLength(100),
-            Forms\Components\TextInput::make('email')->label('Email')->email()->required()->maxLength(150)->unique(ignoreRecord: true),
+        return $schema->components([
+            Forms\Components\TextInput::make('name')
+                ->label('Nama')
+                ->required()
+                ->maxLength(100),
+
+            Forms\Components\TextInput::make('email')
+                ->label('Email')
+                ->email()
+                ->required()
+                ->maxLength(150)
+                ->unique(ignoreRecord: true),
+
             Forms\Components\TextInput::make('password')
                 ->label('Password')
                 ->password()
-                ->dehydrateStateUsing(fn($state) => filled($state) ? Hash::make($state) : null)
-                ->dehydrated(fn($state) => filled($state))
-                ->required(fn(string $operation) => $operation === 'create'),
+                ->dehydrateStateUsing(fn ($state) => filled($state) ? Hash::make($state) : null)
+                ->dehydrated(fn ($state) => filled($state))
+                ->required(fn (string $operation) => $operation === 'create'),
+
+            Forms\Components\Select::make('roles')
+                ->label('Role')
+                ->multiple()
+                ->relationship('roles', 'name')
+                ->preload()
+                ->helperText('Pilih SUPER_ADMIN atau ADMIN.'),
         ]);
     }
 
@@ -39,13 +59,14 @@ class UserResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('name')->label('Nama')->searchable(),
                 Tables\Columns\TextColumn::make('email')->label('Email')->searchable(),
+                Tables\Columns\TextColumn::make('roles.name')->label('Role')->badge()->separator(', '),
                 Tables\Columns\TextColumn::make('created_at')->label('Dibuat')->dateTime('d M Y H:i')->sortable(),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
+            ->recordActions([
+                EditAction::make(),
             ])
-            ->bulkActions([
-                Tables\Actions\DeleteBulkAction::make(),
+            ->toolbarActions([
+                DeleteBulkAction::make(),
             ]);
     }
 

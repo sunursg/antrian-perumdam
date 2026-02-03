@@ -12,6 +12,15 @@ class OperatorTokenController extends Controller
     {
         $user = $request->user();
 
+        if (!$user?->hasAnyRole(['ADMIN', 'SUPER_ADMIN'])) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Akses token hanya untuk ADMIN / SUPER_ADMIN.',
+                'data' => null,
+                'errors' => null,
+            ], 403);
+        }
+
         if (!method_exists($user, 'createToken')) {
             return response()->json([
                 'success' => false,

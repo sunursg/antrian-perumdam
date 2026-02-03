@@ -4,36 +4,30 @@ namespace App\Filament\Widgets;
 
 use App\Models\QueueTicket;
 use Filament\Widgets\ChartWidget;
-use Illuminate\Support\Facades\DB;
 
 class TicketsPerHourChart extends ChartWidget
 {
-    protected static ?string $heading = 'Tiket per Jam (Hari Ini)';
+    protected ?string $heading = 'Tiket per Jam (Hari Ini)';
 
     protected function getData(): array
     {
-        $dateKey = now()->format('Ymd');
-
         $rows = QueueTicket::query()
-            ->select(DB::raw("HOUR(created_at) as jam"), DB::raw('COUNT(*) as total'))
-            ->where('date_key', $dateKey)
-            ->groupBy('jam')
-            ->orderBy('jam')
+            ->selectRaw('HOUR(created_at) as hour, COUNT(*) as total')
+            ->whereDate('created_at', today())
+            ->groupBy('hour')
+            ->orderBy('hour')
             ->get();
 
-        $labels = [];
-        $data = [];
+        $labels = $rows->pluck('hour')
+            ->map(fn ($h) => str_pad((string) $h, 2, '0', STR_PAD_LEFT) . ':00')
+            ->all();
 
-        for ($h = 8; $h <= 15; $h++) {
-            $labels[] = sprintf('%02d:00', $h);
-            $found = $rows->firstWhere('jam', $h);
-            $data[] = $found?->total ?? 0;
-        }
+        $data = $rows->pluck('total')->all();
 
         return [
             'datasets' => [
                 [
-                    'label' => 'Tiket',
+                    'label' => 'Jumlah Tiket',
                     'data' => $data,
                 ],
             ],
@@ -43,6 +37,6 @@ class TicketsPerHourChart extends ChartWidget
 
     protected function getType(): string
     {
-        return 'line';
+        return 'bar';
     }
 }

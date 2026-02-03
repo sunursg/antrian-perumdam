@@ -12,6 +12,7 @@ class QueueSseController extends Controller
     public function stream(Request $request): StreamedResponse
     {
         $response = new StreamedResponse(function () use ($request) {
+            set_time_limit(0);
             @ini_set('zlib.output_compression', '0');
             @ini_set('implicit_flush', '1');
             @ini_set('output_buffering', '0');
@@ -20,13 +21,13 @@ class QueueSseController extends Controller
             ob_implicit_flush(true);
 
             $lastEventId = (int) ($request->header('Last-Event-ID') ?? $request->query('lastEventId', 0));
-            $start = microtime(true);
+            $lastPingAt = microtime(true);
+
+            echo "retry: 3000\n\n";
+            flush();
 
             while (true) {
-                if ((microtime(true) - $start) > 25) {
-                    echo "event: ping\n";
-                    echo "data: {}\n\n";
-                    flush();
+                if (connection_aborted()) {
                     break;
                 }
 
@@ -45,18 +46,34 @@ class QueueSseController extends Controller
                             'service_code' => $ev->service_code,
                             'loket_code' => $ev->loket_code,
                             'status' => $ev->status,
-                            'timestamp' => $ev->occurred_at?->toIso8601String(),
+                            'timestamp' => ($ev->occurred_at ?? $ev->created_at)?->toIso8601String(),
                             'payload' => $ev->payload,
                         ];
 
+                        $eventName = match ($ev->type) {
+                            'ANNOUNCEMENT_UPDATED' => 'announcement_update',
+                            'COUNTER_STATUS_UPDATED' => 'counter_status_update',
+                            'ORGANIZATION_UPDATED' => 'organization_update',
+                            default => 'queue_update',
+                        };
+
                         echo "id: {$ev->id}\n";
-                        echo "event: queue_update\n";
+                        echo "event: {$eventName}\n";
                         echo 'data: ' . json_encode($payload, JSON_UNESCAPED_UNICODE) . "\n\n";
                         flush();
                     }
+                    $lastPingAt = microtime(true);
                 } else {
+                    if ((microtime(true) - $lastPingAt) >= 15) {
+                        echo "event: ping\n";
+                        echo "data: {}\n\n";
+                        flush();
+                        $lastPingAt = microtime(true);
+                    }
                     usleep(350000);
                 }
+
+                unset($events);
             }
         });
 
