@@ -9,6 +9,11 @@ class TicketsPerHourChart extends ChartWidget
 {
     protected ?string $heading = 'Tiket per Jam (Hari Ini)';
 
+    public static function canView(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
     protected function getData(): array
     {
         $rows = QueueTicket::query()

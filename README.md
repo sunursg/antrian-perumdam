@@ -1,59 +1,91 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Sistem Layanan Antrian - Perumdam Tirta Perwira (Laravel 12)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Ini proyek Laravel polos yang sudah disisipi backend + UI publik (JavaScript) + SSE real-time.
 
-## About Laravel
+## 1) Setup cepat
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+```bash
+cp .env.example .env
+php artisan key:generate
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# set DB_* di .env
+php artisan migrate
+php artisan db:seed
+```
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 2) Install paket wajib (role/permission, admin panel, auth token)
 
-## Learning Laravel
+> Kalau kamu mau flow lengkap (Operator token + Filament + Shield), install ini:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+```bash
+composer require laravel/sanctum
+php artisan sanctum:install
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+composer require spatie/laravel-permission
+php artisan vendor:publish --provider="Spatie\\Permission\\PermissionServiceProvider"
 
-## Laravel Sponsors
+composer require filament/filament:^4
+php artisan filament:install
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+composer require filament/shield
+php artisan shield:install
+php artisan shield:generate --all
+```
 
-### Premium Partners
+Lalu aktifkan trait di `app/Models/User.php`:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```php
+use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
-## Contributing
+use HasApiTokens, HasRoles;
+```
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+## 3) Jalankan aplikasi
 
-## Code of Conduct
+Terminal A:
+```bash
+php artisan serve
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+Terminal B:
+```bash
+npm install
+npm run dev
+```
 
-## Security Vulnerabilities
+## 4) URL penting
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+- Landing: `.../`
+- Ambil tiket: `.../ambil-tiket`
+- Display TV (fullscreen): `.../display`
+- Operator: `.../operator`
+- Admin Filament: `.../admin`
 
-## License
+## 5) Flow demo (manual)
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+1) Buka `.../ambil-tiket` → ambil tiket (misal `CS-001`).
+2) Login Operator di `.../operator`.
+3) Jika Sanctum terpasang: buka `.../operator/token` untuk ambil token dan otomatis tersimpan di localStorage.
+4) Klik **Panggil Berikutnya** → Display akan update real-time via SSE.
+
+## 6) Postman
+
+Import koleksi:
+- `postman/Perumdam_Antrian.postman_collection.json`
+
+Request penting:
+- `Public - Take Ticket`
+- `Operator - Call Next`
+- `Operator - Recall / Skip / Serve`
+- `SSE - Stream (browser)`
+
+Catatan: endpoint Operator butuh header:
+
+`Authorization: Bearer {{token}}`
+
+## 7) Catatan penting biar nggak nyalahin komputer terus
+
+- SSE butuh server tidak buffering. Nginx kadang perlu `X-Accel-Buffering: no` (sudah diset).
+- Kalau Display nggak update, cek Console browser dan pastikan route `/api/sse/antrian` bisa diakses.
+- Nomor tiket reset harian per layanan via `date_key`.

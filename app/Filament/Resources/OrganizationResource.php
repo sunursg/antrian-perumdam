@@ -24,6 +24,16 @@ class OrganizationResource extends Resource
     protected static \UnitEnum|string|null $navigationGroup = 'Pengaturan';
     protected static ?string $modelLabel = 'Organisasi';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
     public static function canCreate(): bool
     {
         return false;

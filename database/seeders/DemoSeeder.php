@@ -20,7 +20,7 @@ class DemoSeeder extends Seeder
             ['name' => 'PERUMDAM Tirta Perwira'],
             [
                 'tagline' => 'Melayani dengan Hati, Mengalirkan Manfaat',
-                'service_hours' => 'Senin–Jumat 08.00–15.00',
+                'service_hours' => 'Senin-Jumat 08.00-15.00',
                 'contact_phone' => '0281-123456',
                 'contact_email' => 'layanan@perumdam.test',
                 'address' => 'Jl. Contoh No. 1, Purbalingga',

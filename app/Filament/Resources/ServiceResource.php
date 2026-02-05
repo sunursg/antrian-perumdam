@@ -28,6 +28,16 @@ class ServiceResource extends Resource
     protected static ?string $navigationLabel = 'Layanan';
     protected static ?string $modelLabel = 'Layanan';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([

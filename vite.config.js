@@ -1,13 +1,19 @@
 import { defineConfig } from 'vite';
 import laravel from 'laravel-vite-plugin';
+import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
     plugins: [
         laravel({
-            input: ['resources/css/app.css', 'resources/js/app.js', 'resources/js/pages/landing.js', 'resources/js/pages/ambil-tiket.js', 'resources/js/pages/display.js', 'resources/js/pages/operator.js'],
+            input: [
+                'resources/css/app.css',
+                'resources/js/pages/operator.js',
+                'resources/ts/app.tsx',
+            ],
             refresh: true,
         }),
+        react(),
         tailwindcss(),
     ],
     server: {

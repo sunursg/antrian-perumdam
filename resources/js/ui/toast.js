@@ -1,4 +1,4 @@
-let host;
+﻿let host;
 
 function ensureHost() {
   if (host) return host;
@@ -32,7 +32,7 @@ export function toast({ title = "Info", message = "", variant = "info", timeout 
         <p class="text-sm font-semibold">${title}</p>
         <p class="text-sm text-slate-600 mt-0.5 break-words">${message}</p>
       </div>
-      <button class="ml-auto text-slate-400 hover:text-slate-700" aria-label="Tutup">✕</button>
+      <button class="ml-auto text-slate-400 hover:text-slate-700" aria-label="Tutup">x</button>
     </div>
   `;
 
@@ -53,3 +53,4 @@ style.textContent = `
 @keyframes toastOut { to { opacity:0; transform: translateY(-8px);} }
 `;
 document.head.appendChild(style);
+

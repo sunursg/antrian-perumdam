@@ -17,7 +17,17 @@ class LoketResource extends Resource
     protected static ?string $model = Loket::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-building-office-2';
-    protected static \UnitEnum|string|null $navigationGroup = 'Master';
+    protected static \UnitEnum|string|null $navigationGroup = 'Master Data';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
     protected static ?string $modelLabel = 'Loket';
 
     public static function form(Schema $schema): Schema

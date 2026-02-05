@@ -28,6 +28,16 @@ class AnnouncementResource extends Resource
     protected static \UnitEnum|string|null $navigationGroup = 'Pengaturan';
     protected static ?string $modelLabel = 'Pengumuman';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
     public static function form(Schema $schema): Schema
     {
         return $schema->components([

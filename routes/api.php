@@ -8,11 +8,13 @@ use App\Http\Controllers\Sse\QueueSseController;
 
 Route::prefix('public')->group(function () {
     Route::get('/status', [PublicStatusController::class, 'index']);
+    Route::get('/display/state', [PublicStatusController::class, 'displayState']);
     Route::post('/tickets', [AmbilTiketController::class, 'take']);
     Route::post('/tickets/{service_code}', [AmbilTiketController::class, 'take']);
 });
 
 Route::get('/sse/antrian', [QueueSseController::class, 'stream']);
+Route::get('/sse/queue', [QueueSseController::class, 'stream']);
 
 
 Route::middleware(['web', 'auth', 'role:ADMIN|SUPER_ADMIN'])

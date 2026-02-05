@@ -17,6 +17,16 @@ class QueueTicketResource extends Resource
     protected static \UnitEnum|string|null $navigationGroup = 'Operasional'; 
     protected static ?string $modelLabel = 'Tiket Antrian'; 
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
     public static function table(Table $table): Table
     {
         return $table

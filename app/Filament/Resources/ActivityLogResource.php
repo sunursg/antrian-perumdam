@@ -14,8 +14,19 @@ class ActivityLogResource extends Resource
     protected static ?string $model = ActivityLog::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-clipboard-document-list';
-    protected static \UnitEnum|string|null $navigationGroup = 'Pengamanan';
+    protected static \UnitEnum|string|null $navigationGroup = 'Audit Trail';
+    protected static ?string $navigationLabel = 'Activity Log';
     protected static ?string $modelLabel = 'Activity Log';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
 
     public static function canCreate(): bool
     {

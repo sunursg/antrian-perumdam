@@ -4,6 +4,7 @@ import { toast } from "../ui/toast";
 const hostLokets = document.getElementById("opLokets");
 const controls = document.getElementById("opControls");
 const btnBackHome = document.getElementById("btnBackHome");
+const opCurrentLoket = document.getElementById("opCurrentLoket");
 
 const btnNext = document.getElementById("btnNext");
 const btnRecall = document.getElementById("btnRecall");
@@ -18,10 +19,10 @@ let loketCode = localStorage.getItem("op_loket_code") || null;
 function loketItem(l) {
   const el = document.createElement("button");
   el.className =
-    "w-full text-left p-5 rounded-2xl border border-slate-200 hover:bg-slate-50 shadow-sm transition";
+    "w-full text-left p-5 rounded-2xl border border-slate-200 hover:border-sky-200 hover:shadow-md bg-white transition";
   el.innerHTML = `
     <p class="text-lg font-bold text-slate-900">${l.name}</p>
-    <p class="text-xs tracking-[0.18em] text-slate-400 mt-1">LAYANAN: ${l.service?.code ?? "-"} â€¢ ${l.service?.name ?? "-"}</p>
+    <p class="text-xs tracking-[0.18em] text-slate-400 mt-1">LAYANAN: ${l.service?.code ?? "-"} • ${l.service?.name ?? "-"}</p>
   `;
 
   el.addEventListener("click", () => {
@@ -30,11 +31,12 @@ function loketItem(l) {
 
     // unhighlight all
     [...hostLokets.children].forEach((c) =>
-      c.classList.remove("ring-2", "ring-sky-200")
+      c.classList.remove("ring-2", "ring-sky-300", "shadow-lg")
     );
-    el.classList.add("ring-2", "ring-sky-200");
+    el.classList.add("ring-2", "ring-sky-300", "shadow-lg");
 
     controls?.classList.remove("hidden");
+    if (opCurrentLoket) opCurrentLoket.textContent = l.code;
     toast({
       title: "Loket dipilih",
       message: `${l.name} (${l.code})`,
@@ -47,8 +49,9 @@ function loketItem(l) {
 
   // auto highlight if matches stored
   if (loketCode && l.code === loketCode) {
-    el.classList.add("ring-2", "ring-sky-200");
+    el.classList.add("ring-2", "ring-sky-300", "shadow-lg");
     controls?.classList.remove("hidden");
+    if (opCurrentLoket) opCurrentLoket.textContent = l.code;
   }
 
   return el;
@@ -118,3 +121,4 @@ btnServe?.addEventListener("click", () =>
 loadLokets().catch((e) => {
   console.error(e);
 });
+

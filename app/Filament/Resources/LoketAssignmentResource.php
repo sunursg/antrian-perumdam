@@ -19,6 +19,16 @@ class LoketAssignmentResource extends Resource
     // Filament v4 typed props
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-link';
     protected static \UnitEnum|string|null $navigationGroup = 'Akses';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
     protected static ?string $modelLabel = 'Penugasan Loket';
 
     public static function form(Schema $schema): Schema

@@ -4,41 +4,13 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Public\TakeTicketRequest;
-use App\Models\QueueTicket;
 use App\Models\Service;
 use App\Services\QueueService;
-use App\Support\Settings;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Validation\ValidationException;
 
 class AmbilTiketController extends Controller
 {
-    public function page()
-    {
-        $organization = Settings::organization();
-        $services = Service::query()
-            ->where('is_active', true)
-            ->orderBy('code')
-            ->get();
-
-        $announcements = Settings::activeAnnouncements();
-
-        return view('pages.ambil-tiket', [
-            'organization' => $organization,
-            'services' => $services,
-            'announcements' => $announcements,
-        ]);
-    }
-
-    public function show(QueueTicket $ticket)
-    {
-        $ticket->loadMissing('service', 'loket');
-
-        return view('pages.tiket', [
-            'ticket' => $ticket,
-        ]);
-    }
-
     public function take(TakeTicketRequest $request, QueueService $queue): JsonResponse
     {
         try {

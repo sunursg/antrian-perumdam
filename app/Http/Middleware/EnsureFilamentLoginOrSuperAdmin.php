@@ -25,16 +25,20 @@ class EnsureFilamentLoginOrSuperAdmin
             return redirect()->route("filament.$panel.auth.login");
         }
 
-        // Redirect ADMIN ke halaman operator (bukan panel Filament)
-        if (Auth::user()->hasRole('ADMIN') && !Auth::user()->hasRole('SUPER_ADMIN')) {
-            return redirect('/operator');
-        }
-
-        // Hanya SUPER_ADMIN boleh lanjut ke panel
-        if (! Auth::user()->hasRole('SUPER_ADMIN')) {
+        // Hanya izinkan ADMIN / SUPER_ADMIN masuk panel.
+        if (! Auth::user()->hasAnyRole(['ADMIN', 'SUPER_ADMIN'])) {
             return redirect()
                 ->route("filament.$panel.auth.login")
-                ->withErrors(['email' => 'Hanya SUPER_ADMIN yang boleh masuk panel admin.']);
+                ->withErrors(['email' => 'Akses panel hanya untuk ADMIN atau SUPER_ADMIN.']);
+        }
+
+        // Jika ADMIN membuka dashboard default, arahkan ke halaman operator.
+        if (
+            Auth::user()->hasRole('ADMIN')
+            && ! Auth::user()->hasRole('SUPER_ADMIN')
+            && $routeName === "filament.$panel.pages.dashboard"
+        ) {
+            return redirect()->route("filament.$panel.pages.operator-console");
         }
 
         return $next($request);

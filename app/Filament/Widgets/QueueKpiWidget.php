@@ -9,6 +9,11 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class QueueKpiWidget extends BaseWidget
 {
+    public static function canView(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
     protected function getStats(): array
     {
         $dateKey = now()->format('Y-m-d');

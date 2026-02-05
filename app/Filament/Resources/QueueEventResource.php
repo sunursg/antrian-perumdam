@@ -14,8 +14,19 @@ class QueueEventResource extends Resource
     protected static ?string $model = QueueEvent::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-clock';
-    protected static \UnitEnum|string|null $navigationGroup = 'Operasional'; 
-    protected static ?string $modelLabel = 'Riwayat Panggilan'; 
+    protected static \UnitEnum|string|null $navigationGroup = 'Audit Trail'; 
+    protected static ?string $navigationLabel = 'Audit Trail Antrian';
+    protected static ?string $modelLabel = 'Audit Trail Antrian'; 
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
 
     public static function canCreate(): bool
     {

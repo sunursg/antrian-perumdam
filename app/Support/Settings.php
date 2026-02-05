@@ -17,7 +17,7 @@ class Settings
             return Organization::query()->first() ?? new Organization([
                 'name' => config('app.name', 'Sistem Antrian'),
                 'tagline' => 'Pelayanan prima untuk semua pelanggan',
-                'service_hours' => 'Senin–Jumat 08.00–15.00',
+                'service_hours' => 'Senin-Jumat 08.00-15.00',
             ]);
         });
     }
@@ -32,3 +32,4 @@ class Settings
         return Announcement::active()->get();
     }
 }
+

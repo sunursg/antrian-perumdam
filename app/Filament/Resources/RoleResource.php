@@ -20,6 +20,16 @@ class RoleResource extends Resource
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-key';
     protected static \UnitEnum|string|null $navigationGroup = 'Pengamanan';
+
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
     protected static ?string $modelLabel = 'Role';
 
     public static function form(Schema $schema): Schema

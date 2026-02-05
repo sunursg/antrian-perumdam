@@ -14,6 +14,16 @@ class DebugLogViewer extends Page
     protected static ?string $navigationLabel = 'Debug Log Viewer';
     protected string $view = 'filament.pages.debug-log-viewer';
 
+    public static function canAccess(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
+    public static function shouldRegisterNavigation(): bool
+    {
+        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+    }
+
     public array $lines = [];
 
     public function mount(): void
