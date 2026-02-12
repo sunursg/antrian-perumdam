@@ -1,6 +1,6 @@
 # Sistem Antrian Digital - Perumdam Tirta Perwira
 
-Aplikasi Sistem Manajemen Antrian Modern berbasis Web untuk Perumdam Tirta Perwira (PDAM Purbalingga). Dibangun dengan **Laravel 11**, **React (Inertia.js)**, **Filament PHP**, dan **Tailwind CSS**.
+Aplikasi Sistem Manajemen Antrian Modern berbasis Web untuk Perumdam Tirta Perwira (PDAM Purbalingga). Dibangun dengan **Laravel 12.x**, **React (Inertia.js)**, **Filament PHP**, dan **Tailwind CSS**.
 
 ---
 
