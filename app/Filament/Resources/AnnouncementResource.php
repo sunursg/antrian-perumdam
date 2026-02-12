@@ -11,7 +11,7 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
-use Filament\Forms\Get;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Resources\Resource;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Schema;
@@ -19,6 +19,7 @@ use Filament\Tables;
 use Filament\Tables\Columns\IconColumn;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class AnnouncementResource extends Resource
 {
@@ -58,6 +59,7 @@ class AnnouncementResource extends Resource
                         ->disk('public')
                         ->directory('announcements')
                         ->acceptedFileTypes(['video/mp4', 'video/webm'])
+                        ->maxSize(51200)
                         ->hidden(fn (Get $get) => $get('type') === 'TEXT'),
                     TextInput::make('video_url')
                         ->label('URL Video (opsional)')
@@ -69,7 +71,7 @@ class AnnouncementResource extends Resource
                     Select::make('organization_id')
                         ->label('Organisasi')
                         ->relationship('organization', 'name')
-                        ->preload(),
+                        ->searchable(),
                     Forms\Components\Toggle::make('is_active')->label('Aktif')->default(true),
                     TextInput::make('priority')->label('Prioritas')->numeric()->default(0),
                     DateTimePicker::make('starts_at')->label('Mulai'),
@@ -93,6 +95,12 @@ class AnnouncementResource extends Resource
             ->recordActions([
                 EditAction::make(),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['organization:id,name']);
     }
 
     public static function getPages(): array

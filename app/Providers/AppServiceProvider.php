@@ -40,9 +40,12 @@ class AppServiceProvider extends ServiceProvider
         Role::observe(RoleObserver::class);
         Permission::observe(PermissionObserver::class);
 
-        // Share organization settings to all views (cached)
-        View::composer('*', function ($view) {
-            $view->with('appOrganization', Settings::organization());
+        // Share once per request to avoid repeated resolution on every partial view render.
+        View::share('appOrganization', Settings::organization());
+
+        // Permit SUPER_ADMIN to do anything
+        \Illuminate\Support\Facades\Gate::before(function ($user, $ability) {
+            return $user->hasRole('SUPER_ADMIN') ? true : null;
         });
     }
 }

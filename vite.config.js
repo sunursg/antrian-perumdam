@@ -10,6 +10,7 @@ export default defineConfig({
                 'resources/css/app.css',
                 'resources/js/pages/operator.js',
                 'resources/ts/app.tsx',
+                'resources/ts/counter.tsx',
             ],
             refresh: true,
         }),
@@ -17,6 +18,19 @@ export default defineConfig({
         tailwindcss(),
     ],
     server: {
+        host: '127.0.0.1',
+        proxy: {
+            '/api': {
+                target: 'http://127.0.0.1:8000',
+                changeOrigin: true,
+                secure: false,
+            },
+            '/sanctum': {
+                target: 'http://127.0.0.1:8000',
+                changeOrigin: true,
+                secure: false,
+            }
+        },
         watch: {
             ignored: ['**/storage/framework/views/**'],
         },

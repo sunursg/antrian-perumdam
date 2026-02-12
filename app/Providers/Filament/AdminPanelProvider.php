@@ -8,7 +8,6 @@ use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
 use Filament\Http\Middleware\DispatchServingFilamentEvent;
 use App\Filament\Pages\AdminDashboard;
-use App\Filament\Pages\OperatorConsole;
 use Filament\Panel;
 use Filament\PanelProvider;
 use Filament\Support\Colors\Color;
@@ -35,8 +34,17 @@ class AdminPanelProvider extends PanelProvider
             ->id('admin')
             ->path('admin')
             ->login()
-            ->brandName(fn () => Settings::organization()->name ?? 'Admin')
-            ->brandLogo(fn () => Settings::organization()->logo_path ? Storage::disk('public')->url(Settings::organization()->logo_path) : null)
+            ->brandName(function () {
+                $organization = Settings::organization();
+
+                return $organization->name ?? 'Admin';
+            })
+            ->brandLogo(function () {
+                $organization = Settings::organization();
+                $logoPath = $organization->logo_path;
+
+                return $logoPath ? Storage::disk('public')->url($logoPath) : null;
+            })
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -44,7 +52,6 @@ class AdminPanelProvider extends PanelProvider
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\Filament\Pages')
             ->pages([
                 AdminDashboard::class,
-                OperatorConsole::class,
             ])
             ->discoverWidgets(in: app_path('Filament/Widgets'), for: 'App\Filament\Widgets')
             ->widgets([
@@ -59,8 +66,7 @@ class AdminPanelProvider extends PanelProvider
                 'Master Data',
                 'Pengaturan',
                 'Audit Trail',
-                'Akses',
-                'Pengamanan',
+                'Manajemen Pengguna',
             ])
             ->middleware([
                 EncryptCookies::class,

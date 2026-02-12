@@ -7,19 +7,22 @@ use App\Models\User;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
 use Filament\Forms;
+use Filament\Forms\Components\CheckboxList;
+use Filament\Schemas\Components\Section;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Database\Eloquent\Builder;
 
 class UserResource extends Resource
 {
     protected static ?string $model = User::class;
 
-    // ✅ Filament v4 typed props
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-users';
-    protected static \UnitEnum|string|null $navigationGroup = 'Akses';
+    protected static \UnitEnum|string|null $navigationGroup = 'Manajemen Pengguna';
+    protected static ?int $navigationSort = 1;
 
     public static function canAccess(): bool
     {
@@ -30,36 +33,45 @@ class UserResource extends Resource
     {
         return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
     }
+
     protected static ?string $modelLabel = 'Pengguna';
 
     public static function form(Schema $schema): Schema
     {
         return $schema->components([
-            Forms\Components\TextInput::make('name')
-                ->label('Nama')
-                ->required()
-                ->maxLength(100),
+            Section::make('Informasi Akun')
+                ->schema([
+                    Forms\Components\TextInput::make('name')
+                        ->label('Nama')
+                        ->required()
+                        ->maxLength(100),
 
-            Forms\Components\TextInput::make('email')
-                ->label('Email')
-                ->email()
-                ->required()
-                ->maxLength(150)
-                ->unique(ignoreRecord: true),
+                    Forms\Components\TextInput::make('email')
+                        ->label('Email')
+                        ->email()
+                        ->required()
+                        ->maxLength(150)
+                        ->unique(ignoreRecord: true),
 
-            Forms\Components\TextInput::make('password')
-                ->label('Password')
-                ->password()
-                ->dehydrateStateUsing(fn ($state) => filled($state) ? Hash::make($state) : null)
-                ->dehydrated(fn ($state) => filled($state))
-                ->required(fn (string $operation) => $operation === 'create'),
+                    Forms\Components\TextInput::make('password')
+                        ->label('Password')
+                        ->password()
+                        ->dehydrateStateUsing(fn ($state) => filled($state) ? Hash::make($state) : null)
+                        ->dehydrated(fn ($state) => filled($state))
+                        ->required(fn (string $operation) => $operation === 'create')
+                        ->helperText(fn (string $operation) => $operation === 'edit' ? 'Kosongkan jika tidak ingin mengubah password.' : null),
+                ])
+                ->columns(2),
 
-            Forms\Components\Select::make('roles')
-                ->label('Role')
-                ->multiple()
-                ->relationship('roles', 'name')
-                ->preload()
-                ->helperText('Pilih SUPER_ADMIN atau ADMIN.'),
+            Section::make('Peran (Role)')
+                ->description('Pilih satu atau lebih peran untuk pengguna ini.')
+                ->schema([
+                    CheckboxList::make('roles')
+                        ->label('')
+                        ->relationship('roles', 'name')
+                        ->columns(3)
+                        ->bulkToggleable(),
+                ]),
         ]);
     }
 
@@ -67,10 +79,11 @@ class UserResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('name')->label('Nama')->searchable(),
+                Tables\Columns\TextColumn::make('name')->label('Nama')->searchable()->sortable(),
                 Tables\Columns\TextColumn::make('email')->label('Email')->searchable(),
                 Tables\Columns\TextColumn::make('roles.name')->label('Role')->badge()->separator(', '),
-                Tables\Columns\TextColumn::make('created_at')->label('Dibuat')->dateTime('d M Y H:i')->sortable(),
+                Tables\Columns\TextColumn::make('lokets.name')->label('Loket')->badge()->color('info')->separator(', '),
+                Tables\Columns\TextColumn::make('created_at')->label('Dibuat')->dateTime('d M Y H:i')->sortable()->toggleable(),
             ])
             ->recordActions([
                 EditAction::make(),
@@ -78,6 +91,12 @@ class UserResource extends Resource
             ->toolbarActions([
                 DeleteBulkAction::make(),
             ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['roles:id,name', 'lokets:id,name']);
     }
 
     public static function getPages(): array

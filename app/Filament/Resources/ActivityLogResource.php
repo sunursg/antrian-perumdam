@@ -8,6 +8,7 @@ use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class ActivityLogResource extends Resource
 {
@@ -44,6 +45,12 @@ class ActivityLogResource extends Resource
                 TextColumn::make('subject_type')->label('Objek')->toggleable(),
             ])
             ->defaultSort('id', 'desc');
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['causer:id,name']);
     }
 
     public static function getPages(): array

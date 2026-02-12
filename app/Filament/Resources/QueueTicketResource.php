@@ -8,6 +8,7 @@ use Filament\Actions\ViewAction;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class QueueTicketResource extends Resource
 {
@@ -43,6 +44,12 @@ class QueueTicketResource extends Resource
                 ViewAction::make(),
             ])
             ->defaultSort('id', 'desc');
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['service:id,name', 'loket:id,code']);
     }
 
     public static function canCreate(): bool

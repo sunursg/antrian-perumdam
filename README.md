@@ -1,91 +1,130 @@
-# Sistem Layanan Antrian - Perumdam Tirta Perwira (Laravel 12)
+# Sistem Antrian Digital - Perumdam Tirta Perwira
 
-Ini proyek Laravel polos yang sudah disisipi backend + UI publik (JavaScript) + SSE real-time.
+Aplikasi Sistem Manajemen Antrian Modern berbasis Web untuk Perumdam Tirta Perwira (PDAM Purbalingga). Dibangun dengan **Laravel 11**, **React (Inertia.js)**, **Filament PHP**, dan **Tailwind CSS**.
 
-## 1) Setup cepat
+---
 
-```bash
-cp .env.example .env
-php artisan key:generate
+## 🚀 Fitur Utama
 
-# set DB_* di .env
-php artisan migrate
-php artisan db:seed
-```
+### 1. 🖥️ Kiosk (Pengambilan Tiket)
+- Antarmuka layar sentuh yang responsif.
+- Opsi layanan: **Pembayaran Rekening Air** & **Pelayanan Pelanggan (CS)**.
+- Integrasi Printer Thermal (opsional/browser print).
+- Validasi jam layanan otomatis.
 
-## 2) Install paket wajib (role/permission, admin panel, auth token)
+### 2. 📺 Display TV (Digital Signage)
+- **Tema:** Deep Midnight Blue + Cyan (Modern Glassmorphism).
+- **Layout:** Split Screen (30% Antrian / 70% Video Multimedia).
+- **Fitur:**
+  - **Panel Panggilan:** Menampilkan nomor antrian yang sedang dipanggil dengan teks besar & glowing.
+  - **Grid Loket:** Status real-time loket (CS/Payment).
+  - **Running Text:** Informasi berjalan di footer.
+  - **Voice Announcement:** Suara pemanggilan otomatis ("Nomor Antrian A-001 Ke Loket 1").
 
-> Kalau kamu mau flow lengkap (Operator token + Filament + Shield), install ini:
+### 3. 🎙️ Operator Panel
+- Dashboard khusus petugas loket.
+- **Kontrol:**
+  - `Panggil` (Call Next).
+  - `Panggil Ulang` (Recall).
+  - `Lewati` (Skip/No-Show).
+  - `Selesai` (Finish Transaction).
+- Statistik antrian harian per user.
 
-```bash
-composer require laravel/sanctum
-php artisan sanctum:install
+### 4. 🛠️ Admin Panel (Filament)
+- Manajemen User & Role (Super Admin, Operator).
+- Manajemen Layanan & Loket.
+- Laporan Harian & Bulanan.
 
-composer require spatie/laravel-permission
-php artisan vendor:publish --provider="Spatie\\Permission\\PermissionServiceProvider"
+---
 
-composer require filament/filament:^4
-php artisan filament:install
+## 🛠️ Teknologi
 
-composer require filament/shield
-php artisan shield:install
-php artisan shield:generate --all
-```
+- **Backend:** Laravel 12.x
+- **Frontend:** React + Inertia.js + TypeScript
+- **Styling:** Tailwind CSS + Lucide Icons
+- **Admin:** Filament PHP v4
+- **Database:** MySQL 8.0+
+- **Real-time:** Polling / SSE (Server-Sent Events)
 
-Lalu aktifkan trait di `app/Models/User.php`:
+---
 
-```php
-use Laravel\Sanctum\HasApiTokens;
-use Spatie\Permission\Traits\HasRoles;
+## ⚙️ Instalasi
 
-use HasApiTokens, HasRoles;
-```
+### Prasyarat
+- PHP 8.2+
+- Composer
+- Node.js & NPM
+- MySQL
 
-## 3) Jalankan aplikasi
+### Langkah-langkah
 
-Terminal A:
-```bash
-php artisan serve
-```
+1. **Clone Repository**
+   ```bash
+   git clone https://github.com/sunursg/antrian-perumdam.git
+   cd antrian-perumdam
+   ```
 
-Terminal B:
-```bash
-npm install
-npm run dev
-```
+2. **Install Dependencies**
+   ```bash
+   composer install
+   npm install
+   ```
 
-## 4) URL penting
+3. **Setup Environment**
+   ```bash
+   cp .env.example .env
+   php artisan key:generate
+   ```
+   *Edit `.env` dan sesuaikan koneksi database (`DB_DATABASE`, `DB_USERNAME`, dll).*
 
-- Landing: `.../`
-- Ambil tiket: `.../ambil-tiket`
-- Display TV (fullscreen): `.../display`
-- Operator: `.../operator`
-- Admin Filament: `.../admin`
+4. **Migrasi & Seeding**
+   ```bash
+   php artisan migrate:fresh --seed
+   ```
+   *Seed akan membuat data dummy untuk Layanan, Loket, dan User.*
 
-## 5) Flow demo (manual)
+5. **Jalankan Aplikasi**
+   Terminal 1 (Backend):
+   ```bash
+   php artisan serve
+   ```
+   Terminal 2 (Frontend):
+   ```bash
+   npm run dev
+   ```
 
-1) Buka `.../ambil-tiket` → ambil tiket (misal `CS-001`).
-2) Login Operator di `.../operator`.
-3) Jika Sanctum terpasang: buka `.../operator/token` untuk ambil token dan otomatis tersimpan di localStorage.
-4) Klik **Panggil Berikutnya** → Display akan update real-time via SSE.
+---
 
-## 6) Postman
+## 📖 Cara Penggunaan
 
-Import koleksi:
-- `postman/Perumdam_Antrian.postman_collection.json`
+### URL Akses
 
-Request penting:
-- `Public - Take Ticket`
-- `Operator - Call Next`
-- `Operator - Recall / Skip / Serve`
-- `SSE - Stream (browser)`
+| Halaman | URL | Keterangan |
+|---------|-----|------------|
+| **Kiosk** | `/kiosk` | Halaman pengambilan tiket untuk pelanggan. |
+| **Display** | `/display` | Tampilan TV Ruang Tunggu. |
+| **Operator** | `/counter` | petugas loket. |
+| **Admin** | `/admin` | Panel manajemen sistem. |
 
-Catatan: endpoint Operator butuh header:
+### Akun Demo (Seeder)
 
-`Authorization: Bearer {{token}}`
+- **Super Admin**: `superadmin@pdam.com` / `password`
+- **Operator Loket 1**: `operator1@pdam.com` / `password`
+- **Operator Loket 2**: `operator2@pdam.com` / `password`
 
-## 7) Catatan penting biar nggak nyalahin komputer terus
+---
 
-- SSE butuh server tidak buffering. Nginx kadang perlu `X-Accel-Buffering: no` (sudah diset).
-- Kalau Display nggak update, cek Console browser dan pastikan route `/api/sse/antrian` bisa diakses.
-- Nomor tiket reset harian per layanan via `date_key`.
+## 🔧 Troubleshooting
+
+- **Display tidak update?**
+  Pastikan backend (`php artisan serve`) berjalan. Sistem menggunakan polling/SSE. Cek console browser untuk error koneksi.
+
+- **Suara tidak keluar?**
+  Pastikan browser mengizinkan *Autoplay Audio*. Biasanya perlu interaksi user (klik di halaman Display) sekali untuk mengaktifkan audio context.
+
+- **Tampilan CSS berantakan?**
+  Pastikan `npm run dev` berjalan untuk compile Tailwind assets.
+
+---
+
+**Developed for Perumdam Tirta Perwira Purbalingga**

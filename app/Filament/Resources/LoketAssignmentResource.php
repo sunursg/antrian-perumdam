@@ -11,6 +11,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class LoketAssignmentResource extends Resource
 {
@@ -18,7 +19,8 @@ class LoketAssignmentResource extends Resource
 
     // Filament v4 typed props
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-link';
-    protected static \UnitEnum|string|null $navigationGroup = 'Akses';
+    protected static \UnitEnum|string|null $navigationGroup = 'Manajemen Pengguna';
+    protected static ?int $navigationSort = 4;
 
     public static function canAccess(): bool
     {
@@ -69,6 +71,16 @@ class LoketAssignmentResource extends Resource
             ])
             ->toolbarActions([
                 DeleteBulkAction::make(),
+            ]);
+    }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with([
+                'user:id,name',
+                'loket:id,name,service_id',
+                'loket.service:id,name',
             ]);
     }
 

@@ -16,7 +16,8 @@ class PermissionResource extends Resource
     protected static ?string $model = Permission::class;
 
     protected static \BackedEnum|string|null $navigationIcon = 'heroicon-o-check-badge';
-    protected static \UnitEnum|string|null $navigationGroup = 'Pengamanan';
+    protected static \UnitEnum|string|null $navigationGroup = 'Manajemen Pengguna';
+    protected static ?int $navigationSort = 3;
 
     public static function canAccess(): bool
     {

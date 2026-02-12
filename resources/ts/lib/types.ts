@@ -16,6 +16,7 @@ export type DisplayState = {
   counters?: Array<{
     name: string;
     active: boolean;
+    current_ticket?: string | null;
   }>;
   announcements: Array<{
     title: string;

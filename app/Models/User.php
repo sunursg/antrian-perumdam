@@ -17,6 +17,8 @@ class User extends Authenticatable implements FilamentUser
     /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, HasRoles, Notifiable;
 
+    protected $guard_name = 'web';
+
 
     /**
      * The attributes that are mass assignable.
@@ -52,6 +54,7 @@ class User extends Authenticatable implements FilamentUser
         ];
     }
 
+
     public function loketAssignments(): HasMany
     {
         return $this->hasMany(LoketAssignment::class);
@@ -64,6 +67,7 @@ class User extends Authenticatable implements FilamentUser
 
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->hasAnyRole(['SUPER_ADMIN', 'ADMIN']);
+        // Strictly allow only SUPER_ADMIN or the specific superadmin email
+        return $this->hasRole('SUPER_ADMIN') || $this->email === 'superadmin@demo.test';
     }
 }

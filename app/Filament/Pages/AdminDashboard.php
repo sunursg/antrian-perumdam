@@ -8,6 +8,7 @@ class AdminDashboard extends Dashboard
 {
     public static function canAccess(): bool
     {
-        return auth()->user()?->hasRole('SUPER_ADMIN') ?? false;
+        $user = auth()->user();
+        return $user && ($user->hasRole('SUPER_ADMIN') || $user->email === 'superadmin@demo.test');
     }
 }

@@ -16,15 +16,14 @@ use Illuminate\Validation\ValidationException;
 
 class OperatorQueueController extends Controller
 {
-    private function ensureAssigned(int $userId, Loket $loket): void
+    private function ensureAssigned($user, Loket $loket): void
     {
-        $user = auth()->user();
         if ($user && method_exists($user, 'hasRole') && $user->hasRole('SUPER_ADMIN')) {
             return;
         }
 
         $assigned = LoketAssignment::query()
-            ->where('user_id', $userId)
+            ->where('user_id', $user->id)
             ->where('loket_id', $loket->id)
             ->exists();
 
@@ -86,11 +85,42 @@ class OperatorQueueController extends Controller
             ->with('service:id,code,name')
             ->orderBy('code')
             ->get()
-            ->map(fn($l) => [
-                'code' => $l->code,
-                'name' => $l->name,
-                'service' => ['code' => $l->service->code, 'name' => $l->service->name],
-            ]);
+            ->map(function ($l) use ($user) {
+                $today = now()->format('Y-m-d');
+                $totalParams = [['date_key', $today], ['service_id', $l->service_id]];
+                
+                $total = \App\Models\QueueTicket::where($totalParams)->count();
+                $pending = \App\Models\QueueTicket::where($totalParams)->where('status', \App\Enums\TicketStatus::MENUNGGU->value)->count();
+                $served = \App\Models\QueueTicket::where($totalParams)->where('status', \App\Enums\TicketStatus::SELESAI->value)->count();
+                
+                // Calculate average service time (served_at - called_at) for completed tickets today
+                $avgMinutes = 0;
+                if ($served > 0) {
+                     $totalDuration = \App\Models\QueueTicket::where($totalParams)
+                        ->where('status', \App\Enums\TicketStatus::SELESAI->value)
+                        ->whereNotNull('called_at')
+                        ->whereNotNull('served_at')
+                        ->get()
+                        ->sum(fn($t) => $t->served_at->diffInMinutes($t->called_at));
+                     $avgMinutes = $totalDuration / $served;
+                }
+
+                return [
+                    'code' => $l->code,
+                    'name' => $l->name,
+                    'is_active' => (bool) $l->is_active,
+                    'service' => [
+                        'code' => $l->service?->code,
+                        'name' => $l->service?->name,
+                    ],
+                    'queue_stats' => [
+                        'total' => $total,
+                        'pending' => $pending,
+                        'completed' => $served,
+                        'avg_service_time' => round($avgMinutes, 1),
+                    ]
+                ];
+            });
 
         return response()->json([
             'success' => true,
@@ -104,7 +134,7 @@ class OperatorQueueController extends Controller
     {
         $user = $request->user();
         $loket = $this->findLoketByCode($loketCode);
-        $this->ensureAssigned($user->id, $loket);
+        $this->ensureAssigned($user, $loket);
 
         $ticket = $this->currentTicketForLoket($loket);
 
@@ -126,7 +156,7 @@ class OperatorQueueController extends Controller
         $this->ensurePermission($user, 'queue.call-next', 'Tidak punya izin call-next.');
 
         $loket = $this->findLoketByCode($loketCode);
-        $this->ensureAssigned($user->id, $loket);
+        $this->ensureAssigned($user, $loket);
 
         $ticket = $queue->callNext($loket, $user, $request->ip());
 
@@ -159,7 +189,7 @@ class OperatorQueueController extends Controller
         $this->ensurePermission($user, 'queue.recall', 'Tidak punya izin recall.');
 
         $loket = $this->findLoketByCode($loketCode);
-        $this->ensureAssigned($user->id, $loket);
+        $this->ensureAssigned($user, $loket);
 
         $ticket = $this->currentTicketForLoket($loket);
         if (!$ticket) {
@@ -200,7 +230,7 @@ class OperatorQueueController extends Controller
         $this->ensurePermission($user, 'queue.skip', 'Tidak punya izin skip.');
 
         $loket = $this->findLoketByCode($loketCode);
-        $this->ensureAssigned($user->id, $loket);
+        $this->ensureAssigned($user, $loket);
 
         $ticket = $this->currentTicketForLoket($loket);
         if (!$ticket) {
@@ -239,7 +269,7 @@ class OperatorQueueController extends Controller
         $this->ensurePermission($user, 'queue.serve', 'Tidak punya izin serve.');
 
         $loket = $this->findLoketByCode($loketCode);
-        $this->ensureAssigned($user->id, $loket);
+        $this->ensureAssigned($user, $loket);
 
         $ticket = $this->currentTicketForLoket($loket);
         if (!$ticket) {
@@ -280,7 +310,7 @@ class OperatorQueueController extends Controller
         $this->ensurePermission($user, 'queue.call-next', 'Tidak punya izin call-next.');
 
         $loket = $this->findLoketByCode($request->string('loket_code')->toString());
-        $this->ensureAssigned($user->id, $loket);
+        $this->ensureAssigned($user, $loket);
 
         $ticket = $queue->callNext($loket, $user, $request->ip());
 

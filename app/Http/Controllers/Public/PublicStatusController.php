@@ -169,6 +169,7 @@ class PublicStatusController extends Controller
                 ->map(fn (array $counter) => [
                     'name' => $counter['loket']['name'] ?? '-',
                     'active' => (bool) ($counter['is_active'] ?? false),
+                    'current_ticket' => $counter['sedang_dipanggil'] ?? null,
                 ])
                 ->values(),
             'announcements' => $activeAnnouncements,

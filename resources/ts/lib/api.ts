@@ -6,7 +6,7 @@ type TicketApiPayload = {
   counter_hint?: string | null;
 };
 
-const USE_STUB = import.meta.env.MODE !== "production";
+const USE_STUB = false; // Forced false for integration testing
 
 const getCsrfToken = () => {
   const token = document
@@ -17,7 +17,12 @@ const getCsrfToken = () => {
 
 const safeJson = async <T,>(response: Response): Promise<T | null> => {
   try {
-    return (await response.json()) as T;
+    const text = await response.text();
+    try {
+      return JSON.parse(text) as T;
+    } catch {
+      return null;
+    }
   } catch {
     return null;
   }
@@ -26,19 +31,32 @@ const safeJson = async <T,>(response: Response): Promise<T | null> => {
 const request = async <T,>(
   url: string,
   options: RequestInit = {}
-): Promise<{ ok: boolean; data: T | null; status: number }> => {
+): Promise<{ ok: boolean; data: T | null; status: number; text?: string }> => {
   const response = await fetch(url, {
     credentials: "same-origin",
     headers: {
       Accept: "application/json",
       "Content-Type": "application/json",
+      "X-Requested-With": "XMLHttpRequest",
       ...(options.headers ?? {}),
     },
     ...options,
   });
 
-  const data = await safeJson<T>(response);
-  return { ok: response.ok, data, status: response.status };
+  // We need to clone to read text if we want to handle failures gracefully in the caller
+  // But safeJson consumes it.
+  // Let's rely on safeJson returning null for failure.
+  // Actually, let's change safeJson to separate reading.
+
+  const text = await response.text();
+  let data: T | null = null;
+  try {
+    data = JSON.parse(text);
+  } catch {
+    // ignore
+  }
+
+  return { ok: response.ok, data, status: response.status, text }; // Return text for debug
 };
 
 const unwrapData = <T,>(payload: T | null): T | null => {
@@ -152,6 +170,7 @@ export const getDisplayState = async (): Promise<DisplayState | null> => {
           counters: (payload.counters ?? []).map((counter: any) => ({
             name: counter?.loket?.name ?? counter?.name ?? "-",
             active: !!counter?.is_active,
+            current_ticket: counter?.current_ticket ?? null,
           })),
           announcements: (payload.announcements ?? []).map((item: any) => ({
             title: item?.title ?? "",
@@ -204,6 +223,7 @@ export const createTicket = async (
     if (res.ok && res.data) {
       const payload = unwrapData(res.data) as TicketApiPayload | null;
       if (payload) {
+        // ... (existing helper logic) ...
         const serviceValue =
           typeof payload.service === "string"
             ? payload.service
@@ -216,7 +236,20 @@ export const createTicket = async (
         };
       }
     }
-    throw new Error(`Gagal mengambil tiket (${res.status})`);
+    // Better error reporting
+    let errorMsg = `Gagal mengambil tiket (${res.status})`;
+    if (res.data) {
+      const data = res.data as any;
+      const payload = unwrapData(data) as any;
+      const errObj = payload || data;
+
+      if (errObj?.message) errorMsg += `: ${errObj.message}`;
+      if (errObj?.errors) errorMsg += ` (${JSON.stringify(errObj.errors)})`;
+    } else if (res.text) {
+      errorMsg += `: ${res.text.substring(0, 100)}...`;
+    }
+
+    throw new Error(errorMsg);
   } catch (err) {
     if (USE_STUB) return mockTicket(serviceName);
     throw err instanceof Error ? err : new Error("Gagal mengambil tiket");

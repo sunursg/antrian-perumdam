@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo, useRef, useState } from "react";
 
 type VideoFrameProps = {
   announcement?: {
@@ -15,7 +15,7 @@ const isYouTubeUrl = (url: string) =>
 const isVideoFile = (url: string) =>
   /\.(mp4|webm|ogg)(\?.*)?$/i.test(url);
 
-const getYouTubeEmbedUrl = (url: string) => {
+const getYouTubeEmbedUrl = (url: string, muted: boolean) => {
   try {
     const parsed = new URL(url);
     let id: string | null = null;
@@ -33,7 +33,9 @@ const getYouTubeEmbedUrl = (url: string) => {
     }
 
     if (!id) return null;
-    return `https://www.youtube.com/embed/${id}?autoplay=1&mute=1&controls=0&loop=1&playlist=${id}&modestbranding=1&rel=0`;
+    const muteFlag = muted ? "1" : "0";
+    const origin = encodeURIComponent(window.location.origin);
+    return `https://www.youtube.com/embed/${id}?autoplay=1&mute=${muteFlag}&controls=0&loop=1&playlist=${id}&modestbranding=1&rel=0&enablejsapi=1&origin=${origin}`;
   } catch {
     return null;
   }
@@ -46,6 +48,14 @@ export default function VideoFrame({
 }: VideoFrameProps) {
   const title = announcement?.title || "Tidak ada pengumuman";
   const videoUrl = announcement?.video_url?.trim();
+  const [isMuted, setIsMuted] = useState(true);
+  const videoRef = useRef<HTMLVideoElement | null>(null);
+  const iframeRef = useRef<HTMLIFrameElement | null>(null);
+
+  const isVideo = useMemo(() => {
+    if (!videoUrl) return false;
+    return isYouTubeUrl(videoUrl) || isVideoFile(videoUrl);
+  }, [videoUrl]);
 
   let content: React.ReactNode = (
     <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 text-center px-8">
@@ -65,13 +75,15 @@ export default function VideoFrame({
 
   if (videoUrl) {
     if (isYouTubeUrl(videoUrl)) {
-      const embedUrl = getYouTubeEmbedUrl(videoUrl);
+      const embedUrl = getYouTubeEmbedUrl(videoUrl, isMuted);
       content = embedUrl ? (
         <iframe
+          key={embedUrl}
+          ref={iframeRef}
           src={embedUrl}
           title={title}
           className="h-full w-full"
-          allow="autoplay; encrypted-media"
+          allow="autoplay; encrypted-media; fullscreen"
           allowFullScreen
         />
       ) : (
@@ -80,9 +92,10 @@ export default function VideoFrame({
     } else if (isVideoFile(videoUrl)) {
       content = (
         <video
+          ref={videoRef}
           className="h-full w-full object-cover"
           autoPlay
-          muted
+          muted={isMuted}
           loop
           playsInline
         >
@@ -111,6 +124,42 @@ export default function VideoFrame({
       <div className="absolute right-4 top-4 sm:right-8 sm:top-8 rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold text-white">
         {connectionLabel || "-"}
       </div>
+      {isVideo ? (
+        <button
+          type="button"
+          className="absolute right-4 bottom-4 sm:right-8 sm:bottom-8 z-20 rounded-full bg-slate-950/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/90 shadow-lg hover:bg-slate-950"
+          onClick={() => {
+            const next = !isMuted;
+            setIsMuted(next);
+            if (videoRef.current) {
+              // ensure audio toggle is applied immediately for HTML5 video
+              videoRef.current.muted = next;
+            }
+            if (iframeRef.current) {
+              // YouTube JS API: unmute/mute then play
+              const command = next ? "mute" : "unMute";
+              iframeRef.current.contentWindow?.postMessage(
+                JSON.stringify({
+                  event: "command",
+                  func: command,
+                  args: [],
+                }),
+                "*"
+              );
+              iframeRef.current.contentWindow?.postMessage(
+                JSON.stringify({
+                  event: "command",
+                  func: "playVideo",
+                  args: [],
+                }),
+                "*"
+              );
+            }
+          }}
+        >
+          {isMuted ? "Unmute" : "Mute"}
+        </button>
+      ) : null}
       <div className="absolute bottom-4 left-4 sm:bottom-8 sm:left-8 rounded-2xl bg-slate-950/70 px-4 py-2 text-sm text-white/80">
         {title}
       </div>
