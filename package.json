@@ -12,7 +12,7 @@
         "@types/react-dom": "^19.1.8",
         "@vitejs/plugin-react": "^4.3.2",
         "autoprefixer": "^10.4.23",
-        "axios": "^1.11.0",
+        "axios": "^1.13.5",
         "concurrently": "^9.0.1",
         "laravel-vite-plugin": "^2.0.0",
         "postcss": "^8.5.6",

@@ -6,6 +6,8 @@ use App\Models\Announcement;
 use App\Models\Organization;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Schema;
+
 
 class Settings
 {
@@ -16,21 +18,30 @@ class Settings
     private static ?Collection $activeAnnouncements = null;
 
     public static function organization(): Organization
-    {
-        if (self::$organization instanceof Organization) {
-            return self::$organization;
-        }
-
-        self::$organization = Cache::remember(self::ORG_CACHE_KEY, now()->addMinutes(10), function () {
-            return Organization::query()->first() ?? new Organization([
-                'name' => config('app.name', 'Sistem Antrian'),
-                'tagline' => 'Pelayanan prima untuk semua pelanggan',
-                'service_hours' => 'Senin-Jumat 08.00-15.00',
-            ]);
-        });
-
+{
+    if (self::$organization instanceof Organization) {
         return self::$organization;
     }
+
+    if (! Schema::hasTable('organizations')) {
+        return new Organization([
+            'name' => config('app.name', 'Sistem Antrian'),
+            'tagline' => 'Pelayanan prima untuk semua pelanggan',
+            'service_hours' => 'Senin-Jumat 08.00-15.00',
+        ]);
+    }
+
+    self::$organization = Cache::remember(self::ORG_CACHE_KEY, now()->addMinutes(10), function () {
+        return Organization::query()->first() ?? new Organization([
+            'name' => config('app.name', 'Sistem Antrian'),
+            'tagline' => 'Pelayanan prima untuk semua pelanggan',
+            'service_hours' => 'Senin-Jumat 08.00-15.00',
+        ]);
+    });
+
+    return self::$organization;
+}
+
 
     public static function forgetOrganizationCache(): void
     {
@@ -39,19 +50,24 @@ class Settings
     }
 
     public static function activeAnnouncements(): Collection
-    {
-        if (self::$activeAnnouncements instanceof Collection) {
-            return self::$activeAnnouncements;
-        }
-
-        self::$activeAnnouncements = Cache::remember(
-            self::ACTIVE_ANNOUNCEMENTS_CACHE_KEY,
-            now()->addSeconds(15),
-            fn () => Announcement::active()->get()
-        );
-
+{
+    if (self::$activeAnnouncements instanceof Collection) {
         return self::$activeAnnouncements;
     }
+
+    if (! Schema::hasTable('announcements')) {
+        return collect();
+    }
+
+    self::$activeAnnouncements = Cache::remember(
+        self::ACTIVE_ANNOUNCEMENTS_CACHE_KEY,
+        now()->addSeconds(15),
+        fn () => Announcement::active()->get()
+    );
+
+    return self::$activeAnnouncements;
+}
+
 
     public static function forgetActiveAnnouncementsCache(): void
     {

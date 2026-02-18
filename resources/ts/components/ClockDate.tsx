@@ -23,11 +23,11 @@ export default function ClockDate() {
   }, []);
 
   return (
-    <div className="text-right">
-      <p className="text-2xl sm:text-3xl lg:text-4xl font-semibold tracking-tight text-shadow-soft">
+    <div className="flex flex-col items-end justify-center h-full">
+      <p className="text-5xl font-black tracking-tighter text-white drop-shadow-lg leading-none font-sans">
         {timeFormatter.format(now)}
       </p>
-      <p className="text-xs sm:text-sm text-white/80 mt-1">
+      <p className="text-sm font-bold text-pdam-gold uppercase tracking-widest mt-1">
         {dateFormatter.format(now)}
       </p>
     </div>

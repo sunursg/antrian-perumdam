@@ -16,10 +16,11 @@ export default function TopBar({
   showClock = true,
 }: TopBarProps & { address?: string }) {
   return (
-    <header className="w-full min-h-[72px] bg-gradient-to-r from-blue-900 via-indigo-900 to-blue-900 shadow-xl relative z-20 border-b border-white/10">
-      <div className="mx-auto flex h-full w-full max-w-[1920px] items-center justify-between gap-6 px-6 py-2 sm:px-8">
-        <div className="flex items-center gap-4">
-          <div className="h-12 w-12 shrink-0 rounded-xl bg-white/95 p-1.5 shadow-lg backdrop-blur-sm">
+    <header className="w-full min-h-[80px] bg-[#003366] bg-pdam-deep-blue shadow-2xl relative z-20 border-b-2 border-pdam-gold/50 flex shrink-0">
+      <div className="flex h-full w-full max-w-[1920px] mx-auto items-center justify-between px-8 py-3">
+        {/* LEFT: Branding */}
+        <div className="flex items-center gap-6">
+          <div className="h-16 w-16 shrink-0 rounded-2xl bg-white p-2 shadow-lg shadow-pdam-cyan/20">
             {logoUrl ? (
               <img
                 src={logoUrl}
@@ -31,19 +32,25 @@ export default function TopBar({
             )}
           </div>
           <div className="flex flex-col justify-center">
-            <h1 className="text-xl sm:text-2xl font-black tracking-wider text-white uppercase drop-shadow-md">
+            <h1 className="text-3xl font-black tracking-widest text-white uppercase drop-shadow-md font-sans">
               {brandName}
             </h1>
             {address ? (
-              <p className="text-xs text-cyan-100/90 font-medium tracking-wide mt-0.5 max-w-2xl leading-tight hidden sm:block">
+              <p className="text-sm text-white/90 font-bold tracking-wide mt-1 max-w-2xl leading-tight hidden xl:block drop-shadow-sm">
                 {address}
               </p>
             ) : slogan ? (
-              <p className="text-sm text-cyan-100/80 font-medium tracking-wide">{slogan}</p>
+              <p className="text-sm text-pdam-highlight/80 font-medium tracking-wide">{slogan}</p>
             ) : null}
           </div>
         </div>
-        {showClock ? <ClockDate /> : null}
+
+        {/* RIGHT: Big Digital Clock & Date */}
+        {showClock ? (
+          <div className="text-right">
+            <ClockDate />
+          </div>
+        ) : null}
       </div>
     </header>
   );

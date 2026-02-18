@@ -109,7 +109,7 @@ export default function VideoFrame({
 
   return (
     <section
-      className={`relative flex h-full w-full items-center justify-center ${className ?? ""}`}
+      className={`relative flex h-full w-full items-center justify-center group ${className ?? ""}`}
     >
       <div className="absolute inset-0 rounded-[36px] bg-black/30 blur-2xl" />
       <div className="relative h-full w-full rounded-[36px] border border-white/20 bg-slate-950/60 p-4 shadow-2xl">
@@ -118,16 +118,10 @@ export default function VideoFrame({
         </div>
       </div>
 
-      <div className="absolute left-4 top-4 sm:left-8 sm:top-8 rounded-full bg-rose-500/90 px-4 py-1.5 text-xs font-bold tracking-[0.3em] text-white shadow-lg">
-        {badgeText}
-      </div>
-      <div className="absolute right-4 top-4 sm:right-8 sm:top-8 rounded-full bg-white/15 px-4 py-1.5 text-xs font-semibold text-white">
-        {connectionLabel || "-"}
-      </div>
       {isVideo ? (
         <button
           type="button"
-          className="absolute right-4 bottom-4 sm:right-8 sm:bottom-8 z-20 rounded-full bg-slate-950/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/90 shadow-lg hover:bg-slate-950"
+          className="absolute right-4 bottom-4 sm:right-8 sm:bottom-8 z-20 rounded-full bg-slate-950/80 px-4 py-2 text-xs font-semibold uppercase tracking-[0.2em] text-white/90 shadow-lg hover:bg-slate-950 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
           onClick={() => {
             const next = !isMuted;
             setIsMuted(next);
@@ -160,9 +154,6 @@ export default function VideoFrame({
           {isMuted ? "Unmute" : "Mute"}
         </button>
       ) : null}
-      <div className="absolute bottom-4 left-4 sm:bottom-8 sm:left-8 rounded-2xl bg-slate-950/70 px-4 py-2 text-sm text-white/80">
-        {title}
-      </div>
     </section>
   );
 }

@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 
 /* Tailwind v4 source scan */
@@ -6,68 +6,103 @@
 @source "../**/*.tsx";
 @source "../../views/app.blade.php";
 
+/* Theme token (PDAM Branded Palette) */
 @theme {
-  --font-sans: "Manrope", ui-sans-serif, system-ui, sans-serif,
+  --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+
+  --animate-marquee-vertical: marquee-vertical 20s linear infinite;
+
+  @keyframes marquee-vertical {
+    0% {
+      transform: translateY(0);
+    }
+
+    100% {
+      transform: translateY(-50%);
+    }
+  }
+
+  /* PDAM Branded Colors (Strictly from Logo) */
+  --color-pdam-deep-blue: #002b5b;
+  /* Deep Royal Blue - Backgrounds */
+  --color-pdam-primary: #002b5b;
+  /* Primary Identity Blue */
+  --color-pdam-cyan: #00adef;
+  /* Vibrant Cyan - Accents/Glows */
+  --color-pdam-gold: #fdb813;
+  /* Sunny Golden-Yellow - Priorities/Numbers */
+  --color-pdam-emerald: #00a651;
+  /* Emerald Green - Success/Active */
+  --color-pdam-highlight: rgba(0, 173, 239, 0.05);
+  /* Very Light Cyan */
+
+  /* Custom Shadow Tokens for Glow Effects */
+  --shadow-glow-cyan: 0 0 15px rgba(0, 173, 239, 0.3);
+  --shadow-glow-gold: 0 0 20px rgba(253, 184, 19, 0.5);
 }
 
+/* --- Premium Base Styles --- */
 html,
 body,
 #app {
   height: 100%;
 }
 
-@layer base {
-  body {
-    @apply font-sans antialiased;
-  }
+body {
+  background-color: var(--color-pdam-deep-blue);
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-osx-font-smoothing: grayscale;
 }
 
+/* Glassmorphism & Branded Utilities */
 @layer components {
+  .glass-card {
+    @apply bg-[#002b5b]/60 backdrop-blur-xl border border-white/10 shadow-2xl;
+  }
+
+  .border-glow-cyan {
+    @apply border-pdam-cyan/40;
+    box-shadow: var(--shadow-glow-cyan);
+  }
+
+  .text-glow-gold {
+    @apply text-pdam-gold;
+    filter: drop-shadow(var(--shadow-glow-gold));
+  }
+
+  .btn-primary {
+    @apply px-5 py-3 rounded-2xl bg-pdam-cyan text-white font-bold shadow-lg hover:brightness-110 active:scale-[0.98] transition-all;
+  }
+
+  .btn-gold {
+    @apply px-5 py-3 rounded-2xl bg-pdam-gold text-pdam-deep-blue font-black shadow-lg hover:brightness-110 active:scale-[0.98] transition-all;
+  }
+
+  .card-premium {
+    @apply rounded-3xl bg-[#002b5b]/60 backdrop-blur-xl border border-pdam-cyan/40 shadow-2xl;
+    box-shadow: var(--shadow-glow-cyan), 0 25px 50px -12px rgb(0 0 0 / 0.25);
+  }
+
+  .muted-text {
+    @apply text-white/60 font-medium;
+  }
+
+  /* Keep legacy support if needed */
   .glass-panel {
-    @apply rounded-[28px] bg-white/10 border border-white/15 shadow-2xl/40 backdrop-blur-xl;
-  }
-
-  .panel-light {
-    @apply rounded-[28px] bg-white text-slate-900 border border-slate-100 shadow-xl shadow-slate-900/10;
-  }
-
-  .btn-cta {
-    @apply w-full min-h-[56px] rounded-2xl bg-blue-600 text-white text-lg font-semibold shadow-lg shadow-blue-900/30 hover:bg-blue-700 active:scale-[0.99] transition disabled:opacity-70 disabled:cursor-not-allowed;
-  }
-
-  .btn-cta-green {
-    @apply w-full min-h-[56px] rounded-2xl bg-emerald-600 text-white text-lg font-semibold shadow-lg shadow-emerald-900/30 hover:bg-emerald-700 active:scale-[0.99] transition disabled:opacity-70 disabled:cursor-not-allowed;
-  }
-
-  .btn-muted {
-    @apply min-h-[48px] rounded-2xl bg-white/10 text-white/70 border border-white/15 font-semibold disabled:opacity-70 disabled:cursor-not-allowed;
-  }
-
-  .status-badge {
-    @apply inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold;
-  }
-
-  .slot-box {
-    @apply h-16 w-14 sm:h-20 sm:w-16 lg:h-28 lg:w-24 rounded-2xl bg-slate-900/80 border border-white/20 shadow-inner text-3xl sm:text-4xl lg:text-6xl font-extrabold tracking-tight flex items-center justify-center;
+    @apply rounded-[28px] bg-[#002b5b]/60 backdrop-blur-xl border border-white/15 shadow-2xl;
   }
 }
 
+/* Animation Utilities */
 @layer utilities {
-  .text-shadow-soft {
-    text-shadow: 0 12px 30px rgba(15, 23, 42, 0.35);
-  }
-
   .animate-fade-up {
     animation: fade-up 0.6s ease-out both;
   }
 
-  .animate-fade-up-delay {
-    animation-delay: 0.16s;
-  }
-
-  .animate-fade-up-delay-2 {
-    animation-delay: 0.28s;
+  .bg-ocean {
+    background: radial-gradient(circle at 50% 10%, #003b7a 0%, #002b5b 70%);
   }
 }
 
@@ -76,8 +111,28 @@ body,
     opacity: 0;
     transform: translateY(14px);
   }
+
   100% {
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* Special Effects */
+.glow-call {
+  box-shadow:
+    0 0 0 2px rgba(0, 173, 239, 0.4),
+    0 20px 60px rgba(0, 43, 91, 0.5);
+}
+
+/* Hide scrollbar for modern browsers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
 }

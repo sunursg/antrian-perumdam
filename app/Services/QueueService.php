@@ -84,7 +84,7 @@ class QueueService
                 throw ValidationException::withMessages(['seq' => 'Nomor antrian hari ini sudah mencapai batas.']);
             }
 
-            $ticketNo = sprintf('%s-%03d', $service->code, $nextSeq);
+            $ticketNo = sprintf('%s-%d', $service->code, $nextSeq);
 
             $ticket = QueueTicket::create([
                 'date_key' => $dateKey,

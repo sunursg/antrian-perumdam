@@ -6,50 +6,106 @@
 @source "../**/*.blade.php";
 @source "../**/*.js";
 
-/* Theme token (opsional) */
+/* Theme token (PDAM Branded Palette) */
 @theme {
   --font-sans: "Instrument Sans", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    
+
   --animate-marquee-vertical: marquee-vertical 20s linear infinite;
 
   @keyframes marquee-vertical {
-    0% { transform: translateY(0); }
-    100% { transform: translateY(-50%); }
+    0% {
+      transform: translateY(0);
+    }
+
+    100% {
+      transform: translateY(-50%);
+    }
   }
+
+  /* PDAM Branded Colors (Strictly from Logo) */
+  --color-pdam-deep-blue: #002b5b;
+  /* Deep Royal Blue - Backgrounds */
+  --color-pdam-primary: #002b5b;
+  /* Primary Identity Blue */
+  --color-pdam-cyan: #00adef;
+  /* Vibrant Cyan - Accents/Glows */
+  --color-pdam-gold: #fdb813;
+  /* Sunny Golden-Yellow - Priorities/Numbers */
+  --color-pdam-emerald: #00a651;
+  /* Emerald Green - Success/Active */
+  --color-pdam-highlight: rgba(0, 173, 239, 0.05);
+  /* Very Light Cyan */
+
+  /* Custom Shadow Tokens for Glow Effects */
+  --shadow-glow-cyan: 0 0 15px rgba(0, 173, 239, 0.3);
+  --shadow-glow-gold: 0 0 20px rgba(253, 184, 19, 0.5);
 }
 
-/* --- Premium base --- */
-html, body { height: 100%; }
+/* --- Premium Base Styles --- */
+html,
+body {
+  height: 100%;
+  background-color: var(--color-pdam-deep-blue);
+  color: #ffffff;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
 
-/* Komponen reusable */
+/* Glassmorphism & Branded Utilities */
 @layer components {
+  .glass-card {
+    @apply bg-[#002b5b]/60 backdrop-blur-xl border border-white/10 shadow-2xl;
+  }
+
+  .border-glow-cyan {
+    @apply border-pdam-cyan/40;
+    box-shadow: var(--shadow-glow-cyan);
+  }
+
+  .text-glow-gold {
+    @apply text-pdam-gold;
+    filter: drop-shadow(var(--shadow-glow-gold));
+  }
+
   .btn-primary {
-    @apply px-5 py-3 rounded-2xl bg-sky-600 text-white font-semibold shadow-sm
-      hover:bg-sky-700 active:scale-[0.99] transition;
+    @apply px-5 py-3 rounded-2xl bg-pdam-cyan text-white font-bold shadow-lg hover:brightness-110 active:scale-[0.98] transition-all;
   }
 
-  .btn-ghost-dark {
-    @apply px-5 py-3 rounded-2xl bg-white/10 text-white font-semibold
-      border border-white/15 hover:bg-white/15 active:scale-[0.99] transition;
+  .btn-gold {
+    @apply px-5 py-3 rounded-2xl bg-pdam-gold text-pdam-deep-blue font-black shadow-lg hover:brightness-110 active:scale-[0.98] transition-all;
   }
 
-  .card-dark {
-    @apply rounded-3xl bg-white/6 border border-white/10 shadow-2xl/30 backdrop-blur-md;
+  .card-premium {
+    @apply rounded-3xl bg-[#002b5b]/60 backdrop-blur-xl border border-pdam-cyan/40 shadow-2xl;
+    box-shadow: var(--shadow-glow-cyan), 0 25px 50px -12px rgb(0 0 0 / 0.25);
   }
 
-  .card-light {
-    @apply rounded-3xl bg-white border border-slate-100 shadow-lg shadow-slate-900/5;
-  }
-
-  .muted {
-    @apply text-slate-500;
+  .muted-text {
+    @apply text-white/60 font-medium;
   }
 }
 
-/* Highlight dipakai saat nomor dipanggil */
+/* Special Effects */
 .glow-call {
   box-shadow:
-    0 0 0 2px rgba(6, 182, 212, 0.35),
-    0 20px 60px rgba(2, 132, 199, 0.25);
+    0 0 0 2px rgba(0, 173, 239, 0.4),
+    0 20px 60px rgba(0, 43, 91, 0.5);
+}
+
+/* Hide scrollbar for modern browsers */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  /* IE and Edge */
+  scrollbar-width: none;
+  /* Firefox */
+}
+
+/* Ocean Base Background Utility */
+.bg-ocean {
+  background: radial-gradient(circle at 50% 10%, #003b7a 0%, #002b5b 70%);
 }

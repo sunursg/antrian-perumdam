@@ -18,57 +18,38 @@ export default function QueueCallPanel({
 }: QueueCallPanelProps) {
   return (
     <section
-      className={`relative w-full h-full overflow-hidden rounded-3xl bg-slate-900 border border-slate-800 shadow-2xl flex flex-col items-center ${className ?? ""}`}
+      className={`relative w-full h-full overflow-hidden rounded-[32px] glass-card flex flex-col border-2 border-glow-cyan ${nowServing ? "scale-[1.01]" : "scale-100"} ${className ?? ""}`}
     >
-      {/* --- BACKGROUND EFFECTS --- */}
-      {/* 1. Base Gradient (Midnight Blue) */}
-      <div className="absolute inset-0 bg-gradient-to-b from-slate-900 via-[#0B1120] to-slate-950 z-0" />
+      {/* Branded Wave Overlay (Subtle) */}
+      <div className="absolute inset-0 opacity-10 pointer-events-none bg-[radial-gradient(circle_at_50%_0%,var(--color-pdam-cyan),transparent_60%)]" />
 
-      {/* 2. Radial Glow (Ambient Light behind the number) */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[80%] h-[80%] bg-cyan-500/10 blur-[100px] rounded-full z-0" />
+      {/* HEADER: MEMANGGIL ANTRIAN */}
+      <div className="bg-pdam-deep-blue/80 w-full py-5 flex items-center justify-center shrink-0 border-b border-white/10 backdrop-blur-md">
+        <h2 className="text-white font-black tracking-[0.4em] text-2xl uppercase drop-shadow-lg font-sans">
+          {nowServing ? "MEMANGGIL ANTRIAN" : "ANTRIAN SAAT INI"}
+        </h2>
+      </div>
 
-      {/* 3. Subtle Grid Pattern (Tech feel) */}
-      <div className="absolute inset-0 opacity-[0.03] bg-[linear-gradient(to_right,#80808012_1px,transparent_1px),linear-gradient(to_bottom,#80808012_1px,transparent_1px)] bg-[size:24px_24px] z-0" />
+      {/* BODY: Ticket Number (Golden Yellow Hero) */}
+      <div className="flex-1 flex flex-col items-center justify-center relative overflow-hidden group">
+        {/* Shine effect */}
+        <div className="absolute inset-x-0 h-full w-40 bg-linear-to-r from-transparent via-white/10 to-transparent skew-x-[-25deg] -translate-x-full group-hover:translate-x-[250%] transition-transform duration-[1.5s] ease-in-out" />
 
-      {/* --- CONTENT LAYER --- */}
-      <div className="relative z-10 w-full h-full flex flex-col items-center">
-
-        {/* HEADER BANNER - FLOATING (Image 2 Style) */}
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 w-[90%] max-w-lg h-12 sm:h-14 rounded-2xl bg-gradient-to-r from-amber-400 to-orange-500 shadow-xl flex items-center justify-center z-20 border border-orange-300/30">
-          <p className="text-slate-900 font-extrabold tracking-[0.2em] text-xs sm:text-sm uppercase drop-shadow-sm">
-            MEMANGGIL ANTRIAN
-          </p>
+        <div className="relative z-10 flex flex-col items-center">
+          <span className="text-[14rem] sm:text-[18rem] leading-none font-black text-glow-gold tracking-tighter font-sans select-none">
+            {nowServing?.ticket_no || "--"}
+          </span>
         </div>
+      </div>
 
-        {/* MAIN DISPLAY AREA */}
-        <div className="flex-1 flex flex-col items-center justify-center pt-24 w-full px-4">
-
-          {/* TICKET NUMBER - The Hero Element (MOVED UP) */}
-          <div className="relative group mb-2 text-center">
-            {/* Main Text - No Ghost/Blur Layer */}
-            <h2 className="relative text-7xl sm:text-8xl lg:text-9xl leading-none font-black text-white tracking-tighter drop-shadow-[0_0_30px_rgba(34,211,238,0.6)] font-sans">
-              {nowServing?.ticket_no || "-"}
-            </h2>
-          </div>
-
-          {/* LOKET NAME - Simple Text (MOVED DOWN) */}
-          <div className="mb-2">
-            <p className="text-2xl sm:text-3xl font-medium text-white/90 tracking-wide drop-shadow-md">
-              {nowServing?.counter ?
-                // Convert "LOKET 1" to "Loket 1" for softer look
-                nowServing.counter.charAt(0).toUpperCase() + nowServing.counter.slice(1).toLowerCase()
-                : "Loket -"}
-            </p>
-          </div>
-
-          {/* SERVICE NAME - Grey Text */}
-          <div className="text-center">
-            <p className="text-lg sm:text-xl font-normal text-slate-400 tracking-wide max-w-[300px] mx-auto leading-relaxed">
-              {nowServing?.service ?? "Menunggu antrian..."}
-            </p>
-          </div>
-
-        </div>
+      {/* FOOTER: Counter Name */}
+      <div className="bg-pdam-deep-blue/90 w-full py-8 flex flex-col items-center justify-center shrink-0 border-t border-white/10 backdrop-blur-md">
+        <span className="text-white/60 text-xs font-black tracking-[0.5em] uppercase mb-1">
+          SILAKAN KE
+        </span>
+        <h3 className="text-5xl font-black text-white tracking-widest uppercase font-sans drop-shadow-md">
+          {nowServing?.counter ?? "LOKET -"}
+        </h3>
       </div>
     </section>
   );
